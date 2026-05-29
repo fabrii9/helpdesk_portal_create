@@ -2,6 +2,15 @@
 <odoo>
 <data>
 
+    <!-- Botón "Nuevo Ticket" en el sidebar del portal (debajo de la info del cliente) -->
+    <template id="portal_sidebar_create_ticket" name="Portal Sidebar: Botón nuevo ticket" inherit_id="portal.side_content" priority="20">
+        <xpath expr="//a[@href='/my/account']" position="after">
+            <a href="/my/tickets/new" class="btn btn-primary w-100 mt-3">
+                <i class="fa fa-plus me-1"/> Nuevo Ticket
+            </a>
+        </xpath>
+    </template>
+
     <!-- Botón "Nuevo Ticket" en la lista de tickets del portal -->
     <template id="portal_helpdesk_ticket_inherit_create" name="Portal Helpdesk: Botón nuevo ticket" inherit_id="helpdesk.portal_helpdesk_ticket" priority="20">
         <xpath expr="//t[@t-call='portal.portal_searchbar']" position="replace">
@@ -44,8 +53,25 @@
                                 </t>
                             </div>
 
-                            <form action="/my/tickets/new/submit" method="POST">
+                            <form action="/my/tickets/new/submit" method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                <!-- Categoría -->
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Categoría <span class="text-danger">*</span></label>
+                                    <div class="btn-group-vertical w-100" role="group">
+                                        <t t-set="categories" t-value="[
+                                            ('unexpected', 'Comportamiento no esperado'),
+                                            ('doubt', 'Duda de uso'),
+                                            ('consulting', 'Consultoría'),
+                                            ('commercial', 'Consulta Comercial')
+                                        ]"/>
+                                        <t t-foreach="categories" t-as="cat">
+                                            <input type="radio" class="btn-check" name="ticket_category" t-att-id="'cat_' + cat[0]" t-att-value="cat[0]" t-att-checked="form_data.get('ticket_category') == cat[0]" required="required"/>
+                                            <label t-att-class="'btn btn-outline-primary text-start ' + ('is-invalid' if error.get('ticket_category') else '')" t-att-for="'cat_' + cat[0]" t-out="cat[1]"/>
+                                        </t>
+                                    </div>
+                                </div>
 
                                 <!-- Asunto -->
                                 <div class="mb-3">
@@ -87,12 +113,56 @@
                                     </div>
                                 </div>
 
+                                <div class="row">
+                                    <!-- Impacto -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="impact" class="form-label">Impacto <span class="text-danger">*</span></label>
+                                        <select 
+                                            t-att-class="'form-select ' + ('is-invalid' if error.get('impact') else '')"
+                                            id="impact" name="impact"
+                                            required="required">
+                                            <option value="">Seleccione...</option>
+                                            <option value="low" t-att-selected="form_data.get('impact') == 'low'">Bajo (Otros)</option>
+                                            <option value="medium" t-att-selected="form_data.get('impact') == 'medium'">Medio (Afecta a un sector de la organización)</option>
+                                            <option value="high" t-att-selected="form_data.get('impact') == 'high'">Alto (Afecta a toda la organización)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Urgencia -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="urgency" class="form-label">Urgencia <span class="text-danger">*</span></label>
+                                        <select 
+                                            t-att-class="'form-select ' + ('is-invalid' if error.get('urgency') else '')"
+                                            id="urgency" name="urgency"
+                                            required="required">
+                                            <option value="">Seleccione...</option>
+                                            <option value="low" t-att-selected="form_data.get('urgency') == 'low'">Bajo (Otros)</option>
+                                            <option value="medium" t-att-selected="form_data.get('urgency') == 'medium'">Medio (Interrupción de una operación no crítica o problemas operativos de la principal)</option>
+                                            <option value="high" t-att-selected="form_data.get('urgency') == 'high'">Alto (Interrupción de la operación principal o elevado riesgo financiero)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <!-- Descripción -->
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <label for="description" class="form-label">Descripción</label>
-                                    <textarea class="form-control" id="description" name="description" rows="6"
-                                              placeholder="Describa su consulta o problema en detalle..."
-                                              t-out="form_data.get('description', '')"/>
+                                    <textarea class="form-control" id="description" name="description" rows="10"
+                                              placeholder="Describa su consulta o problema en detalle...">📝 Para poder ayudarte lo más rápido posible, necesitamos un poco más de detalle sobre tu consulta.
+Al cargar el ticket, por favor incluí ejemplos, videos e imagenes.
+
+1. ¿Cuáles son los pasos para reproducir el problema?
+
+2. ¿Qué es lo que está sucediendo actualmente?
+
+3. ¿Qué es lo que debería pasar?
+</textarea>
+                                </div>
+
+                                <!-- Adjuntos -->
+                                <div class="mb-4">
+                                    <label for="attachment" class="form-label">Adjuntar archivos</label>
+                                    <input type="file" class="form-control" id="attachment" name="attachment" multiple="multiple"/>
+                                    <div class="form-text">Podés subir imágenes, videos u otros archivos relevantes.</div>
                                 </div>
 
                                 <!-- Botones -->

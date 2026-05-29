@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+    <!-- Vista Formulario: agregar campos después del grupo principal -->
+    <record id="helpdesk_ticket_view_form_inherit_portal" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.inherit.portal.create</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="arch" type="xml">
+            <field name="tag_ids" position="after">
+                <field name="ticket_category"/>
+                <field name="impact"/>
+                <field name="urgency"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Vista Lista: agregar columnas -->
+    <record id="helpdesk_tickets_view_tree_inherit_portal" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.list.inherit.portal.create</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_tickets_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="ticket_category" optional="show"/>
+                <field name="impact" optional="show"/>
+                <field name="urgency" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Vista Búsqueda: agregar filtros y agrupaciones -->
+    <record id="helpdesk_tickets_view_search_inherit_portal" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.search.inherit.portal.create</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_tickets_view_search"/>
+        <field name="arch" type="xml">
+            <field name="properties" position="after">
+                <field name="ticket_category"/>
+                <field name="impact"/>
+                <field name="urgency"/>
+            </field>
+            <filter name="group_by_properties" position="after">
+                <separator/>
+                <filter string="Categoría" name="group_by_ticket_category" context="{'group_by': 'ticket_category'}"/>
+                <filter string="Impacto" name="group_by_impact" context="{'group_by': 'impact'}"/>
+                <filter string="Urgencia" name="group_by_urgency" context="{'group_by': 'urgency'}"/>
+            </filter>
+        </field>
+    </record>
+
+</data>
+</odoo>

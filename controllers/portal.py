@@ -49,6 +49,18 @@ class CustomerPortal(HelpdeskCustomerPortal):
                 error['team_id'] = True
                 error_message.append(_('El equipo seleccionado no es válido.'))
 
+        if not post.get('ticket_category'):
+            error['ticket_category'] = True
+            error_message.append(_('Debe seleccionar una categoría.'))
+
+        if not post.get('impact'):
+            error['impact'] = True
+            error_message.append(_('Debe seleccionar el impacto.'))
+
+        if not post.get('urgency'):
+            error['urgency'] = True
+            error_message.append(_('Debe seleccionar la urgencia.'))
+
         if error:
             values = self._prepare_portal_layout_values()
             values.update({
@@ -66,7 +78,6 @@ class CustomerPortal(HelpdeskCustomerPortal):
             raise UserError(_('No se encontró un contacto asociado a su usuario.'))
 
         team_id = int(post.get('team_id'))
-        team = request.env['helpdesk.team'].sudo().browse(team_id)
 
         # Crear el ticket con sudo (el portal user no tiene permisos de creación)
         ticket_vals = {
@@ -77,11 +88,26 @@ class CustomerPortal(HelpdeskCustomerPortal):
             'partner_email': partner.email,
             'partner_phone': partner.phone or partner.mobile,
             'description': post.get('description', ''),
+            'ticket_category': post.get('ticket_category'),
+            'impact': post.get('impact'),
+            'urgency': post.get('urgency'),
         }
 
         if post.get('priority'):
             ticket_vals['priority'] = post.get('priority')
 
         ticket = request.env['helpdesk.ticket'].sudo().create(ticket_vals)
+
+        # Procesar adjuntos
+        attachments = request.httprequest.files.getlist('attachment')
+        for attachment in attachments:
+            if attachment.filename:
+                request.env['ir.attachment'].sudo().create({
+                    'name': attachment.filename,
+                    'datas': attachment.read(),
+                    'res_model': 'helpdesk.ticket',
+                    'res_id': ticket.id,
+                    'type': 'binary',
+                })
 
         return request.redirect('/my/ticket/%s' % ticket.id)
