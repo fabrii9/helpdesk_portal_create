@@ -58,17 +58,19 @@
 
                                 <!-- Categoría -->
                                 <div class="mb-3">
-                                    <label class="form-label d-block">Categoría <span class="text-danger">*</span></label>
-                                    <div class="btn-group-vertical w-100" role="group">
-                                        <t t-set="categories" t-value="[
-                                            ('unexpected', 'Comportamiento no esperado'),
-                                            ('doubt', 'Duda de uso'),
-                                            ('consulting', 'Consultoría'),
-                                            ('commercial', 'Consulta Comercial')
-                                        ]"/>
+                                    <label class="form-label">Categoría <span class="text-danger">*</span></label>
+                                    <t t-set="categories" t-value="[
+                                        ('unexpected', 'Comportamiento no esperado'),
+                                        ('doubt', 'Duda de uso'),
+                                        ('consulting', 'Consultoría'),
+                                        ('commercial', 'Consulta Comercial')
+                                    ]"/>
+                                    <div class="d-flex flex-wrap gap-3">
                                         <t t-foreach="categories" t-as="cat">
-                                            <input type="radio" class="btn-check" name="ticket_category" t-att-id="'cat_' + cat[0]" t-att-value="cat[0]" t-att-checked="form_data.get('ticket_category') == cat[0]" required="required"/>
-                                            <label t-att-class="'btn btn-outline-primary text-start ' + ('is-invalid' if error.get('ticket_category') else '')" t-att-for="'cat_' + cat[0]" t-out="cat[1]"/>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="ticket_category" t-att-id="'cat_' + cat[0]" t-att-value="cat[0]" t-att-checked="form_data.get('ticket_category') == cat[0]" required="required"/>
+                                                <label class="form-check-label" t-att-for="'cat_' + cat[0]" t-out="cat[1]"/>
+                                            </div>
                                         </t>
                                     </div>
                                 </div>
@@ -84,24 +86,8 @@
                                 </div>
 
                                 <div class="row">
-                                    <!-- Equipo -->
-                                    <div class="col-md-6 mb-3">
-                                        <label for="team_id" class="form-label">Equipo de Helpdesk <span class="text-danger">*</span></label>
-                                        <select 
-                                            t-att-class="'form-select ' + ('is-invalid' if error.get('team_id') else '')"
-                                            id="team_id" name="team_id"
-                                            required="required">
-                                            <option value="">Seleccione un equipo...</option>
-                                            <t t-foreach="teams" t-as="team">
-                                                <option t-att-value="team.id" t-att-selected="str(team.id) == form_data.get('team_id', '')">
-                                                    <t t-out="team.name"/>
-                                                </option>
-                                            </t>
-                                        </select>
-                                    </div>
-
                                     <!-- Prioridad -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="priority" class="form-label">Prioridad</label>
                                         <select class="form-select" id="priority" name="priority">
                                             <option value="">Seleccione...</option>
@@ -111,34 +97,32 @@
                                             <option value="3" t-att-selected="form_data.get('priority') == '3'">Urgente</option>
                                         </select>
                                     </div>
-                                </div>
 
-                                <div class="row">
                                     <!-- Impacto -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="impact" class="form-label">Impacto <span class="text-danger">*</span></label>
                                         <select 
                                             t-att-class="'form-select ' + ('is-invalid' if error.get('impact') else '')"
                                             id="impact" name="impact"
                                             required="required">
                                             <option value="">Seleccione...</option>
-                                            <option value="low" t-att-selected="form_data.get('impact') == 'low'">Bajo (Otros)</option>
-                                            <option value="medium" t-att-selected="form_data.get('impact') == 'medium'">Medio (Afecta a un sector de la organización)</option>
-                                            <option value="high" t-att-selected="form_data.get('impact') == 'high'">Alto (Afecta a toda la organización)</option>
+                                            <option value="low" t-att-selected="form_data.get('impact') == 'low'">Bajo</option>
+                                            <option value="medium" t-att-selected="form_data.get('impact') == 'medium'">Medio</option>
+                                            <option value="high" t-att-selected="form_data.get('impact') == 'high'">Alto</option>
                                         </select>
                                     </div>
 
                                     <!-- Urgencia -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="urgency" class="form-label">Urgencia <span class="text-danger">*</span></label>
                                         <select 
                                             t-att-class="'form-select ' + ('is-invalid' if error.get('urgency') else '')"
                                             id="urgency" name="urgency"
                                             required="required">
                                             <option value="">Seleccione...</option>
-                                            <option value="low" t-att-selected="form_data.get('urgency') == 'low'">Bajo (Otros)</option>
-                                            <option value="medium" t-att-selected="form_data.get('urgency') == 'medium'">Medio (Interrupción de una operación no crítica o problemas operativos de la principal)</option>
-                                            <option value="high" t-att-selected="form_data.get('urgency') == 'high'">Alto (Interrupción de la operación principal o elevado riesgo financiero)</option>
+                                            <option value="low" t-att-selected="form_data.get('urgency') == 'low'">Bajo</option>
+                                            <option value="medium" t-att-selected="form_data.get('urgency') == 'medium'">Medio</option>
+                                            <option value="high" t-att-selected="form_data.get('urgency') == 'high'">Alto</option>
                                         </select>
                                     </div>
                                 </div>

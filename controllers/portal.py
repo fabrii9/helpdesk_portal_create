@@ -7,15 +7,15 @@ from odoo.exceptions import ValidationError, UserError
 
 class CustomerPortal(HelpdeskCustomerPortal):
 
-    def _get_allowed_teams(self):
-        """Retorna los equipos de helpdesk visibles en el portal."""
+    def _get_default_team(self):
+        """Retorna el primer equipo de helpdesk visible en el portal."""
         return request.env['helpdesk.team'].sudo().search([
             ('privacy_visibility', '=', 'portal'),
-        ])
+        ], limit=1)
 
     def _prepare_portal_layout_values(self):
         values = super(CustomerPortal, self)._prepare_portal_layout_values()
-        values['can_create_ticket'] = bool(self._get_allowed_teams())
+        values['can_create_ticket'] = bool(self._get_default_team())
         return values
 
     @http.route(['/my/tickets/new'], type='http', auth="user", website=True)
@@ -23,7 +23,6 @@ class CustomerPortal(HelpdeskCustomerPortal):
         values = self._prepare_portal_layout_values()
         values.update({
             'page_name': 'ticket',
-            'teams': self._get_allowed_teams(),
             'error': {},
             'error_message': [],
             'form_data': {},
@@ -40,15 +39,6 @@ class CustomerPortal(HelpdeskCustomerPortal):
             error['name'] = True
             error_message.append(_('El asunto del ticket es obligatorio.'))
 
-        if not post.get('team_id'):
-            error['team_id'] = True
-            error_message.append(_('Debe seleccionar un equipo de helpdesk.'))
-        else:
-            team = request.env['helpdesk.team'].sudo().browse(int(post.get('team_id')))
-            if not team.exists() or team.privacy_visibility != 'portal':
-                error['team_id'] = True
-                error_message.append(_('El equipo seleccionado no es válido.'))
-
         if not post.get('ticket_category'):
             error['ticket_category'] = True
             error_message.append(_('Debe seleccionar una categoría.'))
@@ -61,11 +51,14 @@ class CustomerPortal(HelpdeskCustomerPortal):
             error['urgency'] = True
             error_message.append(_('Debe seleccionar la urgencia.'))
 
-        if error:
+        team = self._get_default_team()
+        if not team:
+            error_message.append(_('No hay un equipo de helpdesk configurado para el portal. Contacte al administrador.'))
+
+        if error or error_message:
             values = self._prepare_portal_layout_values()
             values.update({
                 'page_name': 'ticket',
-                'teams': self._get_allowed_teams(),
                 'error': error,
                 'error_message': error_message,
                 'form_data': post,
@@ -77,16 +70,14 @@ class CustomerPortal(HelpdeskCustomerPortal):
         if not partner:
             raise UserError(_('No se encontró un contacto asociado a su usuario.'))
 
-        team_id = int(post.get('team_id'))
-
         # Crear el ticket con sudo (el portal user no tiene permisos de creación)
         ticket_vals = {
             'name': post.get('name').strip(),
-            'team_id': team_id,
+            'team_id': team.id,
             'partner_id': partner.id,
             'partner_name': partner.name,
             'partner_email': partner.email,
-            'partner_phone': partner.phone or partner.mobile,
+            'partner_phone': partner.phone or getattr(partner, 'mobile', False) or '',
             'description': post.get('description', ''),
             'ticket_category': post.get('ticket_category'),
             'impact': post.get('impact'),
